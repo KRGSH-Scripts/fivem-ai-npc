@@ -2,6 +2,8 @@
 
 AI Peds ist eine FiveM-Resource für autonome, KI-gestützte NPCs. Die Peds erhalten Namen, Persönlichkeiten, zufällige FreeRoam-Outfits, eigene Zustände, Beziehungen untereinander und können sprechen, arbeiten, wandern, sozial interagieren und optional per OpenRouter/LLM Entscheidungen oder Chat-Antworten erzeugen.
 
+> **Warnung:** Dieses Projekt ist ungetesteter AI-SLOP. Nutzung ausschließlich auf eigene Verantwortung.
+
 ## Features
 
 - **Autonome NPCs**
