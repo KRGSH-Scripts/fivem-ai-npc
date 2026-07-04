@@ -1,0 +1,46 @@
+FROM ubuntu:24.04
+
+ARG DEBIAN_FRONTEND=noninteractive
+ARG USER_ID=1000
+ARG GROUP_ID=1000
+ARG USERNAME=dev
+ARG PI_PACKAGE_VERSION=latest
+
+ENV TZ=Etc/UTC \
+    LANG=C.UTF-8 \
+    LC_ALL=C.UTF-8
+
+RUN apt-get update \
+  && apt-get install -y --no-install-recommends \
+    bash ca-certificates curl git gnupg less locales nano openssh-client ripgrep sudo tar unzip xz-utils \
+  && locale-gen C.UTF-8 \
+  && install -d -m 0755 /etc/apt/keyrings \
+  && curl -fsSL https://deb.nodesource.com/gpgkey/nodesource-repo.gpg.key | gpg --dearmor -o /etc/apt/keyrings/nodesource.gpg \
+  && echo "deb [signed-by=/etc/apt/keyrings/nodesource.gpg] https://deb.nodesource.com/node_22.x nodistro main" > /etc/apt/sources.list.d/nodesource.list \
+  && apt-get update \
+  && apt-get install -y --no-install-recommends nodejs \
+  && npm install -g --ignore-scripts "@earendil-works/pi-coding-agent@${PI_PACKAGE_VERSION}" \
+  && rm -rf /var/lib/apt/lists/* /root/.npm
+
+RUN set -eux; \
+  if getent group "${GROUP_ID}" >/dev/null; then \
+    EXISTING_GROUP="$(getent group "${GROUP_ID}" | cut -d: -f1)"; \
+    groupmod -n "${USERNAME}" "${EXISTING_GROUP}" || true; \
+  else \
+    groupadd --gid "${GROUP_ID}" "${USERNAME}"; \
+  fi; \
+  if getent passwd "${USER_ID}" >/dev/null; then \
+    EXISTING_USER="$(getent passwd "${USER_ID}" | cut -d: -f1)"; \
+    usermod -l "${USERNAME}" -d "/home/${USERNAME}" -m "${EXISTING_USER}" || true; \
+    usermod -g "${GROUP_ID}" "${USERNAME}" || true; \
+  else \
+    useradd --uid "${USER_ID}" --gid "${GROUP_ID}" -m -s /bin/bash "${USERNAME}"; \
+  fi; \
+  echo "${USERNAME} ALL=(ALL) NOPASSWD:ALL" > "/etc/sudoers.d/${USERNAME}"; \
+  chmod 0440 "/etc/sudoers.d/${USERNAME}"; \
+  mkdir -p /app "/home/${USERNAME}"; \
+  chown -R "${USER_ID}:${GROUP_ID}" /app "/home/${USERNAME}"
+
+WORKDIR /app
+
+CMD ["bash", "-lc", "sleep infinity"]

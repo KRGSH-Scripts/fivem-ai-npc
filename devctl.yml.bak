@@ -1,0 +1,9 @@
+# Leer lassen für einen automatisch aus dem Verzeichnisnamen abgeleiteten Namen.
+project_name: 
+service: dev
+compose_file: docker-compose.yml
+workdir: /app
+host_project_dir: .
+# Nur diese Datei wird mit dem Container geteilt. Extensions/Settings/Sessions bleiben container-eigen.
+pi_auth_file: ~/.pi/agent/auth.json
+container_name: 

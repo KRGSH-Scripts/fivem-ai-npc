@@ -1,0 +1,61 @@
+services:
+  dev:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        USER_ID: ${HOST_UID:-1000}
+        GROUP_ID: ${HOST_GID:-1000}
+        USERNAME: ${DEV_USERNAME:-dev}
+        PI_PACKAGE_VERSION: ${PI_PACKAGE_VERSION:-latest}
+    image: ${COMPOSE_PROJECT_NAME:-pi-dev}-dev:latest
+    container_name: ${DEV_CONTAINER_NAME:-pi-dev}
+    working_dir: /app
+    tty: true
+    stdin_open: true
+    command:
+      - bash
+      - -lc
+      - |
+        mkdir -p /home/${DEV_USERNAME:-dev}/.pi/agent
+        chown -R ${HOST_UID:-1000}:${HOST_GID:-1000} /home/${DEV_USERNAME:-dev}/.pi
+        exec sudo -E -u ${DEV_USERNAME:-dev} bash -lc 'sleep infinity'
+    environment:
+      HOME: /home/${DEV_USERNAME:-dev}
+      TERM: ${TERM:-xterm-256color}
+      COLORTERM: ${COLORTERM:-truecolor}
+      PI_CODING_AGENT_DIR: /home/${DEV_USERNAME:-dev}/.pi/agent
+      ANTHROPIC_API_KEY: ${ANTHROPIC_API_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      GOOGLE_API_KEY: ${GOOGLE_API_KEY:-}
+      GEMINI_API_KEY: ${GEMINI_API_KEY:-}
+      GITHUB_TOKEN: ${GITHUB_TOKEN:-}
+    volumes:
+      - ${PROJECT_DIR:-.}:/app:rw
+      # Container-eigene Pi-Konfiguration (Extensions, Settings, Sessions, Packages).
+      - pi-agent-data:/home/${DEV_USERNAME:-dev}/.pi/agent:rw
+      # Nur die Login-Daten werden mit dem Host geteilt.
+      - ${PI_AUTH_FILE:-${HOME}/.pi/agent/auth.json}:/home/${DEV_USERNAME:-dev}/.pi/agent/auth.json:rw
+
+  # Beispiele für weitere Services:
+  # postgres:
+  #   image: postgres:16
+  #   environment:
+  #     POSTGRES_USER: app
+  #     POSTGRES_PASSWORD: app
+  #     POSTGRES_DB: app
+  #   ports:
+  #     - "5432:5432"
+  #   volumes:
+  #     - postgres-data:/var/lib/postgresql/data
+  #
+  # nats:
+  #   image: nats:2-alpine
+  #   command: ["-js"]
+  #   ports:
+  #     - "4222:4222"
+
+volumes:
+  pi-agent-data:
+    name: ${COMPOSE_PROJECT_NAME:-pi-dev}-pi-agent
+  postgres-data:
